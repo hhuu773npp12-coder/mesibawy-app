@@ -1,16 +1,15 @@
 import 'dart:math';
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:maplibre_gl/mapbox_gl.dart';
-import '../../core/api_client.dart';
-import '../common/location_picker_screen.dart';
-import 'ride_pricing.dart';
+  import 'package:dio/dio.dart';
+  import 'package:flutter/material.dart';
+  import 'package:maplibre_gl/maplibre_gl.dart';
+  import '../../core/api_client.dart';
+  import '../common/location_picker_screen.dart';
+  import 'ride_pricing.dart';
 
 class RideRequestBaseScreen extends StatefulWidget {
   const RideRequestBaseScreen({super.key, required this.role, required this.title});
   final String role; // taxi | tuk_tuk | stuta | kia_haml
   final String title;
-
   @override
   State<RideRequestBaseScreen> createState() => _RideRequestBaseScreenState();
 }

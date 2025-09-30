@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:maplibre_gl/mapbox_gl.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../core/responsive.dart';
 import '../common/profile_screen.dart';
 import '../common/wallet_screen.dart';
@@ -322,7 +322,7 @@ class _DriverHomeBaseScreenState extends State<DriverHomeBaseScreen> {
               height: mapHeight,
               child: MaplibreMap(
                 styleString: 'https://demotiles.maplibre.org/style.json',
-                initialCameraPosition: const CameraPosition(target: LatLng(32.4637, 44.4196), zoom: 12),
+                initialCameraPosition: CameraPosition(target: LatLng(32.4637, 44.4196), zoom: 12),
                 onMapCreated: _onMapCreated,
               ),
             ),

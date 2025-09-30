@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math' show Point;
 
 import 'package:flutter/material.dart';
-import 'package:maplibre_gl/mapbox_gl.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ors_client.dart';
 import '../orders/order_screen.dart';
@@ -231,7 +231,7 @@ class _MapScreenState extends State<MapScreen> {
                 myLocationEnabled: false,
                 myLocationTrackingMode: MyLocationTrackingMode.None,
                 onMapCreated: _onMapCreated,
-                initialCameraPosition: const CameraPosition(
+                initialCameraPosition: CameraPosition(
                   target: LatLng(32.4637, 44.4196), // Babylon, Iraq approx
                   zoom: 12,
                 ),

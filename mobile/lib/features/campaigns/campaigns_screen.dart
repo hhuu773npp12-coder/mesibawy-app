@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:maplibre_gl/mapbox_gl.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../core/api_client.dart';
 import '../common/location_picker_screen.dart';
 import '../auth/auth_api.dart';
@@ -17,7 +17,6 @@ class CampaignsScreen extends StatefulWidget {
 class _CampaignsScreenState extends State<CampaignsScreen> {
   final _api = CampaignsApi();
   bool _loading = false;
-  List<dynamic> _items = [];
 
   @override
   void initState() {

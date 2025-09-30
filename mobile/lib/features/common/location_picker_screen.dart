@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:math' show Point;
 import 'package:flutter/material.dart';
-import 'package:maplibre_gl/mapbox_gl.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
 
 class LocationPickerResult {
   final double lat;
@@ -18,7 +19,7 @@ class LocationPickerScreen extends StatefulWidget {
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   static const _styleUrl = 'https://demotiles.maplibre.org/style.json';
-  static const _center = LatLng(32.4637, 44.4196); // Babylon approx
+  static final _center = LatLng(32.4637, 44.4196); // Babylon approx
   MaplibreMapController? _map;
   LatLng? _picked;
   final _noteCtrl = TextEditingController();
@@ -39,7 +40,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     if (_picked == null) return;
     Navigator.of(context).pop(LocationPickerResult(_picked!.latitude, _picked!.longitude, note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim()));
   }
-
   @override
   void dispose() {
     _noteCtrl.dispose();
@@ -55,7 +55,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           Expanded(
             child: MaplibreMap(
               styleString: _styleUrl,
-              initialCameraPosition: const CameraPosition(target: _center, zoom: 12),
+              initialCameraPosition: CameraPosition(target: _center, zoom: 12),
               onMapCreated: _onMapCreated,
               onMapClick: _onTap,
             ),
