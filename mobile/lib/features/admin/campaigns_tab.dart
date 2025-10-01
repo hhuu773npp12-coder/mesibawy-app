@@ -26,55 +26,6 @@ class _CampaignsTabState extends State<CampaignsTab> {
     _fetch();
   }
 
-  Future<void> _fetchBookings(String campaignId) async {
-    setState(() {
-      _bookingsForId = campaignId;
-      _bookings = [];
-    });
-    try {
-      final res = await _api.listCampaignBookings(campaignId);
-      setState(() => _bookings = (res.data as List));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فشل تحميل الحجوزات')),
-      );
-    }
-  }
-
-  Future<void> _book(String campaignId) async {
-    final ctrl = TextEditingController();
-    final userId = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('حجز مقعد'),
-        content: TextField(
-          controller: ctrl,
-          decoration: const InputDecoration(hintText: 'أدخل userId'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: const Text('تأكيد')),
-        ],
-      ),
-    );
-    if (userId == null || userId.isEmpty) return;
-    try {
-      await _api.bookCampaign(campaignId: campaignId, userId: userId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم الحجز')),
-      );
-      await _fetch();
-      if (_bookingsForId == campaignId) {
-        await _fetchBookings(campaignId);
-      }
-    } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فشل الحجز')),
-      );
-    }
-  }
-
   @override
   void dispose() {
     _titleCtrl.dispose();
@@ -94,6 +45,61 @@ class _CampaignsTabState extends State<CampaignsTab> {
     }
   }
 
+  Future<void> _fetchBookings(String campaignId) async {
+    setState(() {
+      _bookingsForId = campaignId;
+      _bookings = [];
+    });
+    try {
+      final res = await _api.listCampaignBookings(campaignId);
+      setState(() => _bookings = (res.data as List));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('فشل تحميل الحجوزات')));
+    }
+  }
+
+  Future<void> _book(String campaignId) async {
+    final ctrl = TextEditingController();
+    final userId = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('حجز مقعد'),
+        content: TextField(
+          controller: ctrl,
+          decoration: const InputDecoration(hintText: 'أدخل userId'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: const Text('تأكيد'),
+          ),
+        ],
+      ),
+    );
+    if (userId == null || userId.isEmpty) return;
+    try {
+      await _api.bookCampaign(campaignId: campaignId, userId: userId);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تم الحجز')));
+      await _fetch();
+      if (_bookingsForId == campaignId) {
+        await _fetchBookings(campaignId);
+      }
+    } catch (_) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('فشل الحجز')));
+    }
+  }
+
   Future<void> _create() async {
     try {
       await _api.createCampaign(
@@ -106,9 +112,9 @@ class _CampaignsTabState extends State<CampaignsTab> {
       _originCtrl.clear();
       await _fetch();
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فشل إنشاء الحملة')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('فشل إنشاء الحملة')));
     }
   }
 
@@ -119,16 +125,61 @@ class _CampaignsTabState extends State<CampaignsTab> {
         const SnackBar(content: Text('تم تجهيز المشاركة (placeholder)')),
       );
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فشل المشاركة')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('فشل المشاركة')));
     }
+  }
+
+  // إضافة دالة اختيار الدور
+  Future<String?> _pickRole(BuildContext context) async {
+    const roles = [
+      'taxi',
+      'tuk_tuk',
+      'kia_passenger',
+      'kia_haml',
+      'stuta',
+      'bike',
+      'electrician',
+      'plumber',
+      'blacksmith',
+      'ac_tech',
+    ];
+
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('اختر فئة للإشعار'),
+        content: SizedBox(
+          width: 320,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: roles
+                .map(
+                  (r) => OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx, r),
+                    child: Text(r),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // مدخلات إنشاء الحملة
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Wrap(
@@ -147,7 +198,9 @@ class _CampaignsTabState extends State<CampaignsTab> {
                 width: 180,
                 child: TextField(
                   controller: _originCtrl,
-                  decoration: const InputDecoration(labelText: 'منطقة الانطلاق'),
+                  decoration: const InputDecoration(
+                    labelText: 'منطقة الانطلاق',
+                  ),
                 ),
               ),
               SizedBox(
@@ -171,32 +224,51 @@ class _CampaignsTabState extends State<CampaignsTab> {
             ],
           ),
         ),
+        // قائمة الحملات
         Expanded(
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : ListView.separated(
+                  itemCount: _items.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (_, i) {
                     final it = _items[i] as Map<String, dynamic>;
                     final seatsTotal = it['seatsTotal'] ?? 0;
                     final seatsBooked = it['seatsBooked'] ?? 0;
-                    final remaining = (seatsTotal as int) - (seatsBooked as int);
+                    final remaining =
+                        (seatsTotal as int) - (seatsBooked as int);
                     final id = it['id'].toString();
                     return ListTile(
                       title: Text(it['title']?.toString() ?? ''),
-                      subtitle: Text('الانطلاق: ${it['originArea']} • المقاعد: $seatsTotal • المتبقي: $remaining • السعر: ${it['pricePerSeat']}'),
+                      subtitle: Text(
+                        'الانطلاق: ${it['originArea']} • المقاعد: $seatsTotal • المتبقي: $remaining • السعر: ${it['pricePerSeat']}',
+                      ),
                       trailing: Wrap(
                         spacing: 8,
                         children: [
-                          TextButton(onPressed: () => _share(id), child: const Text('مشاركة')),
-                          TextButton(onPressed: () => _fetchBookings(id), child: const Text('الحجوزات')),
-                          ElevatedButton(onPressed: () => _book(id), child: const Text('حجز')),
+                          TextButton(
+                            onPressed: () => _share(id),
+                            child: const Text('مشاركة'),
+                          ),
+                          TextButton(
+                            onPressed: () => _fetchBookings(id),
+                            child: const Text('الحجوزات'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => _book(id),
+                            child: const Text('حجز'),
+                          ),
                           OutlinedButton(
                             onPressed: () async {
                               final role = await _pickRole(context);
                               if (role == null) return;
-                              final titleCtrl = TextEditingController(text: 'حملة زيارة جديدة');
-                              final msgCtrl = TextEditingController(text: 'العنوان: ${it['title']} — الانطلاق: ${it['originArea']}');
-                              // ignore: use_build_context_synchronously
+                              final titleCtrl = TextEditingController(
+                                text: 'حملة زيارة جديدة',
+                              );
+                              final msgCtrl = TextEditingController(
+                                text:
+                                    'العنوان: ${it['title']} — الانطلاق: ${it['originArea']}',
+                              );
                               final ok = await showDialog<bool>(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
@@ -204,14 +276,31 @@ class _CampaignsTabState extends State<CampaignsTab> {
                                   content: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'العنوان')),
+                                      TextField(
+                                        controller: titleCtrl,
+                                        decoration: const InputDecoration(
+                                          labelText: 'العنوان',
+                                        ),
+                                      ),
                                       const SizedBox(height: 8),
-                                      TextField(controller: msgCtrl, decoration: const InputDecoration(labelText: 'الرسالة')),
+                                      TextField(
+                                        controller: msgCtrl,
+                                        decoration: const InputDecoration(
+                                          labelText: 'الرسالة',
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   actions: [
-                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-                                    FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إرسال')),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
+                                      child: const Text('إلغاء'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text('إرسال'),
+                                    ),
                                   ],
                                 ),
                               );
@@ -219,17 +308,32 @@ class _CampaignsTabState extends State<CampaignsTab> {
                                 try {
                                   await _api.notifyByTags(
                                     tags: [
-                                      { 'key': 'role', 'relation': '=', 'value': role },
+                                      {
+                                        'key': 'role',
+                                        'relation': '=',
+                                        'value': role,
+                                      },
                                     ],
                                     title: titleCtrl.text.trim(),
                                     message: msgCtrl.text.trim(),
-                                    data: { 'kind': 'campaign_share', 'campaignId': id },
+                                    data: {
+                                      'kind': 'campaign_share',
+                                      'campaignId': id,
+                                    },
                                   );
                                   if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال الإشعار')));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم إرسال الإشعار'),
+                                    ),
+                                  );
                                 } catch (_) {
                                   if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('فشل إرسال الإشعار')));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('فشل إرسال الإشعار'),
+                                    ),
+                                  );
                                 }
                               }
                             },
@@ -239,10 +343,9 @@ class _CampaignsTabState extends State<CampaignsTab> {
                       ),
                     );
                   },
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemCount: _items.length,
                 ),
         ),
+        // قائمة الحجوزات
         if (_bookingsForId != null)
           Container(
             height: 220,
@@ -270,17 +373,23 @@ class _CampaignsTabState extends State<CampaignsTab> {
                   child: _bookings.isEmpty
                       ? const Center(child: Text('لا توجد حجوزات'))
                       : ListView.separated(
+                          itemCount: _bookings.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
                           itemBuilder: (_, i) {
                             final b = _bookings[i] as Map<String, dynamic>;
                             final u = b['user'] as Map<String, dynamic>?;
                             return ListTile(
                               dense: true,
-                              title: Text(u != null ? (u['name'] ?? u['phone'] ?? '') : 'مستخدم'),
-                              subtitle: Text('الحالة: ${b['status']} • ${b['createdAt'] ?? ''}'),
+                              title: Text(
+                                u != null
+                                    ? (u['name'] ?? u['phone'] ?? '')
+                                    : 'مستخدم',
+                              ),
+                              subtitle: Text(
+                                'الحالة: ${b['status']} • ${b['createdAt'] ?? ''}',
+                              ),
                             );
                           },
-                          separatorBuilder: (_, __) => const Divider(height: 1),
-                          itemCount: _bookings.length,
                         ),
                 ),
               ],

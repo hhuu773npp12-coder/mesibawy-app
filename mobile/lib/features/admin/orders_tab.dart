@@ -31,8 +31,12 @@ class _OrdersTabState extends State<OrdersTab> {
         limit: int.tryParse(_limitCtrl.text.trim()),
         category: _category,
         status: _status,
-        dateFrom: _dateFromCtrl.text.trim().isEmpty ? null : _dateFromCtrl.text.trim(),
-        dateTo: _dateToCtrl.text.trim().isEmpty ? null : _dateToCtrl.text.trim(),
+        dateFrom: _dateFromCtrl.text.trim().isEmpty
+            ? null
+            : _dateFromCtrl.text.trim(),
+        dateTo: _dateToCtrl.text.trim().isEmpty
+            ? null
+            : _dateToCtrl.text.trim(),
       );
       setState(() => _items = (res.data as List));
     } finally {
@@ -44,6 +48,7 @@ class _OrdersTabState extends State<OrdersTab> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // فلترة الطلبات
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Wrap(
@@ -57,11 +62,20 @@ class _OrdersTabState extends State<OrdersTab> {
                 items: const [
                   DropdownMenuItem(value: 'taxi', child: Text('تاكسي')),
                   DropdownMenuItem(value: 'tuk_tuk', child: Text('ستوتة')),
-                  DropdownMenuItem(value: 'kia_passenger', child: Text('كيا ركاب')),
+                  DropdownMenuItem(
+                    value: 'kia_passenger',
+                    child: Text('كيا ركاب'),
+                  ),
                   DropdownMenuItem(value: 'kia_haml', child: Text('كيا حمل')),
-                  DropdownMenuItem(value: 'stuta', child: Text('ستوتة (Alias)')),
+                  DropdownMenuItem(
+                    value: 'stuta',
+                    child: Text('ستوتة (Alias)'),
+                  ),
                   DropdownMenuItem(value: 'bike', child: Text('دراجة')),
-                  DropdownMenuItem(value: 'electrician', child: Text('كهربائي')),
+                  DropdownMenuItem(
+                    value: 'electrician',
+                    child: Text('كهربائي'),
+                  ),
                   DropdownMenuItem(value: 'plumber', child: Text('سباك')),
                   DropdownMenuItem(value: 'blacksmith', child: Text('حداد')),
                   DropdownMenuItem(value: 'ac_tech', child: Text('فني تبريد')),
@@ -96,7 +110,9 @@ class _OrdersTabState extends State<OrdersTab> {
                           initialDate: now,
                         );
                         if (picked != null) {
-                          _dateFromCtrl.text = picked.toIso8601String().substring(0, 10);
+                          _dateFromCtrl.text = picked
+                              .toIso8601String()
+                              .substring(0, 10);
                         }
                       },
                     ),
@@ -121,7 +137,10 @@ class _OrdersTabState extends State<OrdersTab> {
                           initialDate: now,
                         );
                         if (picked != null) {
-                          _dateToCtrl.text = picked.toIso8601String().substring(0, 10);
+                          _dateToCtrl.text = picked.toIso8601String().substring(
+                            0,
+                            10,
+                          );
                         }
                       },
                     ),
@@ -140,41 +159,63 @@ class _OrdersTabState extends State<OrdersTab> {
             ],
           ),
         ),
+
+        // عرض الطلبات
         Expanded(
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : ListView.separated(
+                  itemCount: _items.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (_, i) {
                     final o = _items[i] as Map<String, dynamic>;
                     final user = o['user'] as Map<String, dynamic>?;
                     final status = (o['status'] ?? '').toString();
+
                     Color chipColor;
                     switch (status) {
                       case 'COMPLETED':
                         chipColor = Colors.green;
                         break;
                       case 'CANCELLED':
+                        chipColor = Colors.red;
                         break;
                       default:
                         chipColor = Colors.orange;
                     }
+
                     return ListTile(
                       title: Wrap(
                         spacing: 8,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text('نوع: ${o['category']} • السعر: ${o['priceTotal']} ${o['currency']}'),
-                          Chip(label: Text(status), backgroundColor: chipColor.withOpacity(0.15), labelStyle: TextStyle(color: chipColor)),
+                          Text(
+                            'نوع: ${o['category']} • السعر: ${o['priceTotal']} ${o['currency']}',
+                          ),
+                          Chip(
+                            label: Text(status),
+                            backgroundColor: chipColor.withOpacity(0.15),
+                            labelStyle: TextStyle(color: chipColor),
+                          ),
                         ],
                       ),
-                      subtitle: Text('المسافة: ${o['distanceKm']} كم • الوقت: ${o['durationMin'] ?? '-'} دقيقة\nالمستخدم: ${user != null ? (user['name'] ?? user['phone'] ?? '') : '—'}'),
+                      subtitle: Text(
+                        'المسافة: ${o['distanceKm']} كم • الوقت: ${o['durationMin'] ?? '-'} دقيقة\n'
+                        'المستخدم: ${user != null ? (user['name'] ?? user['phone'] ?? '') : '—'}',
+                      ),
                       trailing: TextButton(
                         child: const Text('مشاركة'),
                         onPressed: () async {
-                          final titleCtrl = TextEditingController(text: 'طلب خدمة جديد');
-                          final msgCtrl = TextEditingController(text: 'النوع: ${o['category']} • السعر: ${o['priceTotal']}');
+                          final titleCtrl = TextEditingController(
+                            text: 'طلب خدمة جديد',
+                          );
+                          final msgCtrl = TextEditingController(
+                            text:
+                                'النوع: ${o['category']} • السعر: ${o['priceTotal']}',
+                          );
                           final role = await _pickRole(context);
                           if (role == null) return;
+
                           final ok = await showDialog<bool>(
                             context: context,
                             builder: (ctx) => AlertDialog(
@@ -182,50 +223,86 @@ class _OrdersTabState extends State<OrdersTab> {
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'العنوان')),
+                                  TextField(
+                                    controller: titleCtrl,
+                                    decoration: const InputDecoration(
+                                      labelText: 'العنوان',
+                                    ),
+                                  ),
                                   const SizedBox(height: 8),
-                                  TextField(controller: msgCtrl, decoration: const InputDecoration(labelText: 'الرسالة')),
+                                  TextField(
+                                    controller: msgCtrl,
+                                    decoration: const InputDecoration(
+                                      labelText: 'الرسالة',
+                                    ),
+                                  ),
                                 ],
                               ),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-                                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('إرسال')),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('إلغاء'),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('إرسال'),
+                                ),
                               ],
                             ),
                           );
+
                           if (ok == true) {
                             try {
                               await _api.notifyByTags(
                                 tags: [
-                                  { 'key': 'role', 'relation': '=', 'value': role },
+                                  {
+                                    'key': 'role',
+                                    'relation': '=',
+                                    'value': role,
+                                  },
                                 ],
                                 title: titleCtrl.text.trim(),
                                 message: msgCtrl.text.trim(),
-                                data: { 'kind': 'order_share', 'orderId': o['id'] },
+                                data: {
+                                  'kind': 'order_share',
+                                  'orderId': o['id'],
+                                },
                               );
                               if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تمت المشاركة')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('تمت المشاركة')),
+                              );
                             } catch (_) {
                               if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('فشل المشاركة')));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('فشل المشاركة')),
+                              );
                             }
                           }
                         },
                       ),
                     );
                   },
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemCount: _items.length,
                 ),
+        ),
       ],
     );
   }
 
   Future<String?> _pickRole(BuildContext context) async {
     const roles = [
-      'taxi', 'tuk_tuk', 'kia_passenger', 'kia_haml', 'stuta', 'bike',
-      'electrician', 'plumber', 'blacksmith', 'ac_tech',
+      'taxi',
+      'tuk_tuk',
+      'kia_passenger',
+      'kia_haml',
+      'stuta',
+      'bike',
+      'electrician',
+      'plumber',
+      'blacksmith',
+      'ac_tech',
     ];
+
     return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -236,15 +313,20 @@ class _OrdersTabState extends State<OrdersTab> {
             spacing: 8,
             runSpacing: 8,
             children: roles
-                .map((r) => OutlinedButton(
-                      onPressed: () => Navigator.pop(ctx, r),
-                      child: Text(r),
-                    ))
+                .map(
+                  (r) => OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx, r),
+                    child: Text(r),
+                  ),
+                )
                 .toList(),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
         ],
       ),
     );

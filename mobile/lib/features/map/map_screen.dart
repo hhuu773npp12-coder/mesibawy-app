@@ -26,6 +26,14 @@ class _MapScreenState extends State<MapScreen> {
   double? _lastDistanceKm;
   double? _lastDurationMin;
 
+  // Converts a Flutter Color to a hex string accepted by MapLibre (e.g., #RRGGBB)
+  String colorToRgbaString(Color color) {
+    final r = color.red.toRadixString(16).padLeft(2, '0');
+    final g = color.green.toRadixString(16).padLeft(2, '0');
+    final b = color.blue.toRadixString(16).padLeft(2, '0');
+    return '#$r$g$b';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -229,7 +237,6 @@ class _MapScreenState extends State<MapScreen> {
               child: MaplibreMap(
                 styleString: _styleUrl,
                 myLocationEnabled: false,
-                myLocationTrackingMode: MyLocationTrackingMode.None,
                 onMapCreated: _onMapCreated,
                 initialCameraPosition: CameraPosition(
                   target: LatLng(32.4637, 44.4196), // Babylon, Iraq approx

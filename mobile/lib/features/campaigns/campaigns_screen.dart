@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../core/api_client.dart';
 import '../common/location_picker_screen.dart';
-import '../auth/auth_api.dart';
 import 'campaigns_api.dart';
 
 class CampaignsScreen extends StatefulWidget {
@@ -17,6 +16,7 @@ class CampaignsScreen extends StatefulWidget {
 class _CampaignsScreenState extends State<CampaignsScreen> {
   final _api = CampaignsApi();
   bool _loading = false;
+  List<dynamic> _items = [];
 
   @override
   void initState() {
@@ -42,9 +42,8 @@ class _CampaignsScreenState extends State<CampaignsScreen> {
     if (pick == null) return;
 
     try {
-      final auth = AuthApi(ApiClient.I.dio);
-      final me = await auth.me();
-      final m = me.data as Map<String, dynamic>;
+      final meResp = await ApiClient.I.dio.get('/users/me');
+      final m = meResp.data as Map<String, dynamic>;
       final userId = m['id']?.toString();
       if (userId == null) throw Exception('no user');
 

@@ -202,6 +202,7 @@ class _CraftHomeBaseScreenState extends State<CraftHomeBaseScreen> {
         ),
       ),
     ).whenComplete(_fetch);
+  }
 
   @override
   Widget build(BuildContext context) {

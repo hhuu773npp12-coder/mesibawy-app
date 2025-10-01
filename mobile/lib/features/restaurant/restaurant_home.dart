@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
+import 'package:dio/dio.dart';
 import '../../core/api_client.dart';
 import 'restaurant_api.dart';
 import 'restaurant_orders_screen.dart';

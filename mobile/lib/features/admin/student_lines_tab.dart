@@ -25,6 +25,7 @@ class _StudentLinesTabState extends State<StudentLinesTab> {
   void initState() {
     super.initState();
     _fetch();
+    _fetchPublic();
   }
 
   @override
@@ -70,9 +71,9 @@ class _StudentLinesTabState extends State<StudentLinesTab> {
       _destCtrl.clear();
       await _fetch();
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فشل إنشاء الخط')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('فشل إنشاء الخط')));
     }
   }
 
@@ -91,14 +92,18 @@ class _StudentLinesTabState extends State<StudentLinesTab> {
                 width: 180,
                 child: TextField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'اسم المدرسة/الجامعة'),
+                  decoration: const InputDecoration(
+                    labelText: 'اسم المدرسة/الجامعة',
+                  ),
                 ),
               ),
               SizedBox(
                 width: 180,
                 child: TextField(
                   controller: _originCtrl,
-                  decoration: const InputDecoration(labelText: 'منطقة الانطلاق'),
+                  decoration: const InputDecoration(
+                    labelText: 'منطقة الانطلاق',
+                  ),
                 ),
               ),
               SizedBox(
@@ -137,15 +142,24 @@ class _StudentLinesTabState extends State<StudentLinesTab> {
                     final it = _public[i] as Map<String, dynamic>;
                     return ListTile(
                       leading: const Icon(Icons.school_outlined),
-                      title: Text('${it['citizenName']} • ${it['citizenPhone']}'),
-                      subtitle: Text('نوع: ${it['kind']} • عدد: ${it['count']}\nالمسافة: ${it['distanceKm']} كم • أسبوعي: ${it['weeklyPrice']} د.ع\nمن (${it['originLat']}, ${it['originLng']}) إلى (${it['destLat']}, ${it['destLng']})'),
+                      title: Text(
+                        '${it['citizenName']} • ${it['citizenPhone']}',
+                      ),
+                      subtitle: Text(
+                        'نوع: ${it['kind']} • عدد: ${it['count']}\n'
+                        'المسافة: ${it['distanceKm']} كم • أسبوعي: ${it['weeklyPrice']} د.ع\n'
+                        'من (${it['originLat']}, ${it['originLng']}) '
+                        'إلى (${it['destLat']}, ${it['destLng']})',
+                      ),
                       trailing: Wrap(
                         spacing: 8,
                         children: [
                           OutlinedButton(
                             onPressed: it['status'] == 'PENDING'
                                 ? () async {
-                                    await _api.approveStudentLinePublicRequest(it['id']);
+                                    await _api.approveStudentLinePublicRequest(
+                                      it['id'],
+                                    );
                                     _fetchPublic();
                                   }
                                 : null,
@@ -154,7 +168,9 @@ class _StudentLinesTabState extends State<StudentLinesTab> {
                           OutlinedButton(
                             onPressed: it['status'] == 'PENDING'
                                 ? () async {
-                                    await _api.rejectStudentLinePublicRequest(it['id']);
+                                    await _api.rejectStudentLinePublicRequest(
+                                      it['id'],
+                                    );
                                     _fetchPublic();
                                   }
                                 : null,
@@ -168,4 +184,7 @@ class _StudentLinesTabState extends State<StudentLinesTab> {
                   itemCount: _public.length,
                 ),
         ),
+      ],
+    );
+  }
 }
