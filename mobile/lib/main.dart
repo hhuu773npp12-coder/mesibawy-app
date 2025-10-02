@@ -58,18 +58,6 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      builder: (context, child) {
-        final mq = MediaQuery.of(context);
-        final w = mq.size.width;
-        final textScale = w < 360 ? 0.95 : (w < 600 ? 1.0 : 1.1);
-        return MediaQuery(
-          data: mq.copyWith(textScaler: TextScaler.linear(textScale)),
-          child: Directionality(
-            textDirection: TextDirection.rtl,
-            child: child!,
-          ),
-        );
-      },
       home: const SplashToNext(),
     );
   }
