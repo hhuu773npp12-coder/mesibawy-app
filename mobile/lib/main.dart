@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+
+// Imports
 import 'features/auth/phone_screen.dart';
-import 'features/auth/code_screen.dart';
 import 'features/common/waiting_approval_screen.dart';
 import 'features/admin/admin_home.dart';
 import 'features/orders/order_screen.dart';
@@ -24,7 +25,6 @@ import 'features/registration/restaurant_registration_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Lock to portrait for now; can be relaxed later if needed
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const MyApp());
 }
@@ -43,7 +43,10 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Roboto',
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0E6BA8), brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0E6BA8),
+          brightness: Brightness.dark,
+        ),
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
@@ -56,13 +59,15 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       builder: (context, child) {
-        // Global responsive typography + RTL
         final mq = MediaQuery.of(context);
         final w = mq.size.width;
         final textScale = w < 360 ? 0.95 : (w < 600 ? 1.0 : 1.1);
         return MediaQuery(
           data: mq.copyWith(textScaler: TextScaler.linear(textScale)),
-          child: Directionality(textDirection: TextDirection.rtl, child: child!),
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: child!,
+          ),
         );
       },
       home: const SplashToNext(),
@@ -70,7 +75,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Splash screen then decides where to go next
 class SplashToNext extends StatefulWidget {
   const SplashToNext({super.key});
 
@@ -88,123 +92,126 @@ class _SplashToNextState extends State<SplashToNext> {
   }
 
   Future<void> _start() async {
-    // Show splash for 5 seconds
-    await Future.delayed(const Duration(seconds: 5));
-    if (!mounted) return;
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted || _navigated) return;
 
     final prefs = await SharedPreferences.getInstance();
     final seenOnboarding = prefs.getBool('seen_onboarding') ?? false;
 
-    if (_navigated) return;
     _navigated = true;
+
     if (!seenOnboarding) {
-      Navigator.of(context).pushReplacement(
+      Navigator.pushReplacement(
+        context,
         MaterialPageRoute(builder: (_) => const OnboardingSelectRole()),
       );
       return;
     }
 
-    // Check auth token and approval state
     final token = prefs.getString('auth_token');
     final approved = prefs.getBool('user_approved') ?? false;
     final role = prefs.getString('user_role');
-    if (token != null && token.isNotEmpty) {
-      if (!approved) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const WaitingApprovalScreen()),
-        );
-        return;
-      }
-      // Navigate based on stored role (check profile completion for vehicle/craft roles)
-      ApiClient.I.setAuthToken(token);
-      Map<String, dynamic>? me;
-      try {
-        final res = await ApiClient.I.dio.get('/users/me');
-        me = res.data as Map<String, dynamic>;
-      } catch (_) {}
 
-      Widget dest;
-      switch (role) {
-        case 'citizen':
-          dest = const CitizenHome();
-          break;
-        case 'taxi':
-        case 'tuk_tuk':
-        case 'kia_haml':
-        case 'kia_passenger':
-        case 'stuta':
-        case 'bike':
-          if (me != null && ((me['vehicleType'] == null) || (me['vehicleType'] as String).isEmpty)) {
-            dest = const VehicleRegistrationScreen();
-          } else {
-            dest = const DriverHome();
-          }
-          break;
-        case 'electrician':
-        case 'plumber':
-        case 'blacksmith':
-        case 'ac_tech':
-          if (me != null && ((me['craftType'] == null) || (me['craftType'] as String).isEmpty)) {
-            dest = const CraftRegistrationScreen();
-          } else {
-            final roleTitle = () {
-              switch (role) {
-                case 'electrician':
-                  return 'صاحب حرفة - كهربائي';
-                case 'plumber':
-                  return 'صاحب حرفة - سباك';
-                case 'blacksmith':
-                  return 'صاحب حرفة - حداد';
-                case 'ac_tech':
-                default:
-                  return 'صاحب حرفة - فني تبريد';
-              }
-            }();
-            dest = CraftHomeBaseScreen(role: role!, title: roleTitle);
-          }
-          break;
-        case 'admin':
-          dest = const AdminHome();
-          break;
-        case 'owner':
-          dest = const OwnerHome();
-          break;
-        case 'restaurant_owner':
-          {
-            final prefs = await SharedPreferences.getInstance();
-            final localRegistered = prefs.getBool('restaurant_registered') ?? false;
-            if (!localRegistered) {
-              dest = const RestaurantRegistrationScreen();
-            } else {
-              dest = const RestaurantHome();
-            }
-          }
-          break;
-        default:
-          dest = const PlaceholderHome();
-      }
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => dest),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
+    if (token == null || token.isEmpty) {
+      Navigator.pushReplacement(
+        context,
         MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
       );
+      return;
+    }
+
+    if (!approved) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const WaitingApprovalScreen()),
+      );
+      return;
+    }
+
+    ApiClient.I.setAuthToken(token);
+    Map<String, dynamic>? me;
+    try {
+      final res = await ApiClient.I.dio.get('/users/me');
+      me = res.data as Map<String, dynamic>;
+    } catch (_) {}
+
+    Widget dest;
+    switch (role) {
+      case 'citizen':
+        dest = const CitizenHome();
+        break;
+      case 'taxi':
+      case 'tuk_tuk':
+      case 'kia_haml':
+      case 'kia_passenger':
+      case 'stuta':
+      case 'bike':
+        dest =
+            (me != null &&
+                ((me['vehicleType'] == null) ||
+                    (me['vehicleType'] as String).isEmpty))
+            ? const VehicleRegistrationScreen()
+            : const DriverHome();
+        break;
+      case 'electrician':
+      case 'plumber':
+      case 'blacksmith':
+      case 'ac_tech':
+        dest =
+            (me != null &&
+                ((me['craftType'] == null) ||
+                    (me['craftType'] as String).isEmpty))
+            ? const CraftRegistrationScreen()
+            : CraftHomeBaseScreen(role: role!, title: _craftRoleTitle(role));
+        break;
+      case 'admin':
+        dest = const AdminHome();
+        break;
+      case 'owner':
+        dest = const OwnerHome();
+        break;
+      case 'restaurant_owner':
+        final localRegistered = prefs.getBool('restaurant_registered') ?? false;
+        dest = localRegistered
+            ? const RestaurantHome()
+            : const RestaurantRegistrationScreen();
+        break;
+      default:
+        dest = const PlaceholderHome();
+    }
+
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => dest));
+  }
+
+  String _craftRoleTitle(String role) {
+    switch (role) {
+      case 'electrician':
+        return 'صاحب حرفة - كهربائي';
+      case 'plumber':
+        return 'صاحب حرفة - سباك';
+      case 'blacksmith':
+        return 'صاحب حرفة - حداد';
+      case 'ac_tech':
+      default:
+        return 'صاحب حرفة - فني تبريد';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: const [
-              Icon(Icons.directions_car_filled_outlined, size: 80, color: Color(0xFF0E6BA8)),
+            children: [
+              Icon(
+                Icons.directions_car_filled_outlined,
+                size: 80,
+                color: Color(0xFF0E6BA8),
+              ),
               SizedBox(height: 24),
               Text(
                 'تم إنشاء التطبيق من مجموعة الحسن للبرمجيات والتقنيات الدقيقة ومنظومات الطاقة المتجددة',
@@ -219,25 +226,17 @@ class _SplashToNextState extends State<SplashToNext> {
   }
 }
 
-/// First-run only: role/category selection screen
 class OnboardingSelectRole extends StatelessWidget {
   const OnboardingSelectRole({super.key});
-
-  Future<void> _completeFirstRun(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('seen_onboarding', true);
-    if (!context.mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
-    );
-  }
 
   Future<void> _chooseDirect(BuildContext context, String role) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('intended_role', role);
     await prefs.setBool('seen_onboarding', true);
+
     if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
+    Navigator.pushAndRemoveUntil(
+      context,
       MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
       (route) => false,
     );
@@ -252,18 +251,39 @@ class OnboardingSelectRole extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _RoleButton(label: 'مواطن', onTap: () => _chooseDirect(context, 'citizen')),
-            _RoleButton(label: 'صاحب مركبة', onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const VehicleSelectScreen()));
-            }),
-            _RoleButton(label: 'صاحب حرفة', onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CraftSelectScreen()));
-            }),
-            _RoleButton(label: 'أدمن', onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AdminSelectScreen()));
-            }),
-            _RoleButton(label: 'مالك', onTap: () => _chooseDirect(context, 'owner')),
-            _RoleButton(label: 'صاحب مطعم', onTap: () => _chooseDirect(context, 'restaurant_owner')),
+            _RoleButton(
+              label: 'مواطن',
+              onTap: () => _chooseDirect(context, 'citizen'),
+            ),
+            _RoleButton(
+              label: 'صاحب مركبة',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const VehicleSelectScreen()),
+              ),
+            ),
+            _RoleButton(
+              label: 'صاحب حرفة',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CraftSelectScreen()),
+              ),
+            ),
+            _RoleButton(
+              label: 'أدمن',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminSelectScreen()),
+              ),
+            ),
+            _RoleButton(
+              label: 'مالك',
+              onTap: () => _chooseDirect(context, 'owner'),
+            ),
+            _RoleButton(
+              label: 'صاحب مطعم',
+              onTap: () => _chooseDirect(context, 'restaurant_owner'),
+            ),
             const SizedBox(height: 12),
             const Text(
               'ملاحظة: تظهر هذه الواجهة عند فتح التطبيق لأول مرة فقط.',
@@ -288,14 +308,15 @@ class _RoleButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: ElevatedButton(
         onPressed: onTap,
-        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
         child: Text(label, style: const TextStyle(fontSize: 16)),
       ),
     );
   }
 }
 
-/// Temporary home placeholder; will be replaced by real role-based homes
 class PlaceholderHome extends StatelessWidget {
   const PlaceholderHome({super.key});
 
@@ -314,56 +335,49 @@ class PlaceholderHome extends StatelessWidget {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('seen_onboarding');
                 if (!context.mounted) return;
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const OnboardingSelectRole()),
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const OnboardingSelectRole(),
+                  ),
                   (route) => false,
                 );
               },
-              child: const Text('إعادة عرض واجهة الفرز (مرة واحدة)'),
+              child: const Text('إعادة عرض واجهة الفرز'),
             ),
-            const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AdminHome()),
-                );
-              },
-              child: const Text('فتح لوحة الأدمن'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminHome()),
+              ),
+              child: const Text('لوحة الأدمن'),
             ),
-            const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const CitizenHome()),
-                );
-              },
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CitizenHome()),
+              ),
               child: const Text('واجهة المواطن'),
             ),
-            const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const DriverHome()),
-                );
-              },
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DriverHome()),
+              ),
               child: const Text('واجهة السائق'),
             ),
-            const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const OrderScreen()),
-                );
-              },
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const OrderScreen()),
+              ),
               child: const Text('طلب رحلة تجريبي'),
             ),
-            const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const MapScreen()),
-                );
-              },
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MapScreen()),
+              ),
               child: const Text('الخريطة (ORS)'),
             ),
           ],
