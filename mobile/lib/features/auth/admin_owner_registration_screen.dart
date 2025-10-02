@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api_client.dart';
 import 'code_screen.dart';
+import 'admin_owner_login_screen.dart';
 
 class AdminOwnerRegistrationScreen extends StatefulWidget {
   const AdminOwnerRegistrationScreen({super.key, required this.role});
@@ -15,7 +16,6 @@ class _AdminOwnerRegistrationScreenState extends State<AdminOwnerRegistrationScr
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _secretCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
 
@@ -33,17 +33,13 @@ class _AdminOwnerRegistrationScreenState extends State<AdminOwnerRegistrationScr
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
-    _secretCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    final secret = _secretCtrl.text.trim();
-    if (!_validSecrets.contains(secret)) {
-      setState(() => _error = 'الرمز السري غير صحيح');
-      return;
-    }
+    // Use fixed secret automatically based on role priority
+    final secret = _validSecrets.first;
 
     setState(() {
       _loading = true;
@@ -65,8 +61,13 @@ class _AdminOwnerRegistrationScreenState extends State<AdminOwnerRegistrationScr
       await prefs.setString('last_phone', phone);
 
       if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => CodeScreen(phone: phone, devCode: code)),
+      // بعد التسجيل بنجاح، العودة إلى شاشة تسجيل الدخول لنفس الدور
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن.')),
+      );
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => AdminOwnerLoginScreen(role: widget.role)),
+        (route) => false,
       );
     } catch (e) {
       setState(() => _error = 'تعذر إنشاء الحساب. تحقق من البيانات وحاول مجدداً.');
@@ -110,14 +111,7 @@ class _AdminOwnerRegistrationScreenState extends State<AdminOwnerRegistrationScr
                 },
               ),
               const SizedBox(height: 12),
-              const Text('الرمز السري'),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _secretCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'XXXXXX'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'أدخل الرمز السري' : null,
-              ),
+              // تم إلغاء إدخال الرمز السري والاعتماد على رمز ثابت داخل التطبيق
               const SizedBox(height: 12),
               if (_error != null) ...[
                 Text(_error!, style: const TextStyle(color: Colors.red)),

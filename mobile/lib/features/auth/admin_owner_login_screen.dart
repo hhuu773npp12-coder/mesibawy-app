@@ -4,6 +4,7 @@ import '../../core/api_client.dart';
 import '../admin/admin_home.dart';
 import '../owner/owner_home.dart';
 import '../onboarding/admin_select_screen.dart';
+import '../onboarding/role_select_screen.dart';
 import 'admin_owner_registration_screen.dart';
 
 class AdminOwnerLoginScreen extends StatefulWidget {
@@ -40,8 +41,6 @@ class _AdminOwnerLoginScreenState extends State<AdminOwnerLoginScreen> {
     super.dispose();
   }
 
-  bool _checkSecretLocally(String s) => _validSecrets.contains(s.trim());
-
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -52,9 +51,9 @@ class _AdminOwnerLoginScreenState extends State<AdminOwnerLoginScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('intended_role', widget.role);
       final phone = _phoneCtrl.text.trim();
-
+      // Use the entered secret for both roles and validate against fixed list
       final secret = _secretCtrl.text.trim();
-      if (!_checkSecretLocally(secret)) {
+      if (!_validSecrets.contains(secret)) {
         setState(() => _error = 'الرمز السري غير صحيح');
         return;
       }
@@ -168,8 +167,9 @@ class _AdminOwnerLoginScreenState extends State<AdminOwnerLoginScreen> {
               ),
               TextButton(
                 onPressed: () {
+                  // العودة إلى الفرز الأولي (وليس فرز الأدمن)
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const AdminSelectScreen()),
+                    MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
                     (route) => false,
                   );
                 },

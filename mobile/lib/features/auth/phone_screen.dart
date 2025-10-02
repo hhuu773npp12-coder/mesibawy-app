@@ -3,10 +3,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api_client.dart';
 import 'code_screen.dart';
 import '../../main.dart';
+import '../onboarding/role_select_screen.dart';
 import 'citizen_registration_screen.dart';
+import '../onboarding/craft_select_screen.dart';
+import '../registration/craft_registration_screen.dart';
+import '../registration/vehicle_registration_screen.dart';
+import '../registration/restaurant_registration_screen.dart';
 
 class PhoneInputScreen extends StatefulWidget {
-  const PhoneInputScreen({super.key});
+  const PhoneInputScreen({super.key, this.titleOverride});
+  final String? titleOverride;
 
   @override
   State<PhoneInputScreen> createState() => _PhoneInputScreenState();
@@ -18,6 +24,20 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
   final _phoneController = TextEditingController();
   bool _loading = false;
   String? _error;
+  String? _intendedRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final role = prefs.getString('intended_role');
+    if (!mounted) return;
+    setState(() => _intendedRole = role);
+  }
 
   @override
   void dispose() {
@@ -61,10 +81,23 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
     }
   }
 
+  bool get _isCraftRole => _intendedRole == 'electrician' || _intendedRole == 'plumber' || _intendedRole == 'blacksmith' || _intendedRole == 'ac_tech';
+  bool get _isVehicleRole => _intendedRole == 'taxi' || _intendedRole == 'tuk_tuk' || _intendedRole == 'kia_haml' || _intendedRole == 'kia_passenger' || _intendedRole == 'stuta' || _intendedRole == 'bike';
+  bool get _isRestaurantRole => _intendedRole == 'restaurant_owner';
+
   @override
   Widget build(BuildContext context) {
+    final appBarTitle = widget.titleOverride ?? (_intendedRole == 'citizen'
+        ? 'تسجيل دخول المواطن'
+        : _isCraftRole
+            ? 'تسجيل دخول صاحب الحِرفة'
+            : _isVehicleRole
+                ? 'تسجيل دخول صاحب المركبة'
+                : _isRestaurantRole
+                    ? 'تسجيل دخول صاحب المطعم'
+                    : 'تسجيل الدخول');
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الدخول')),
+      appBar: AppBar(title: Text(appBarTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -109,23 +142,37 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
                 onPressed: _loading ? null : _requestCode,
                 child: _loading
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('إرسال الكود'),
+                    : Text((_intendedRole == 'citizen' || _isCraftRole || _isVehicleRole || _isRestaurantRole) ? 'تسجيل الدخول' : 'إرسال الكود'),
               ),
               const SizedBox(height: 8),
               TextButton(
                 onPressed: _loading
                     ? null
                     : () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const CitizenRegistrationScreen()),
-                        );
+                        if (_isCraftRole) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const CraftRegistrationScreen()),
+                          );
+                        } else if (_isVehicleRole) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const VehicleRegistrationScreen()),
+                          );
+                        } else if (_isRestaurantRole) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const RestaurantRegistrationScreen()),
+                          );
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const CitizenRegistrationScreen()),
+                          );
+                        }
                       },
                 child: const Text('إنشاء حساب جديد'),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const OnboardingSelectRole()),
+                    MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
                   );
                 },
                 child: const Text('العودة إلى واجهة الفرز'),

@@ -16,7 +16,8 @@ class WaitingApprovalScreen extends StatelessWidget {
               Icon(Icons.watch_later_outlined, size: 64, color: Colors.orange),
               SizedBox(height: 16),
               Text(
-                'طلبك قيد المراجعة من قِبل المشرف. سنعلمك عند الموافقة.',
+                'طلبك قيد المراجعة من قِبل الأدمن. سيتم إشعارك عند الموافقة،'
+                '\nوسوف نتواصل معك لتحديد موعد توقيع عقد مع الشركة.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),

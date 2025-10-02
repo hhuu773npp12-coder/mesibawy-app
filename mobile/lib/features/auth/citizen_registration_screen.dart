@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api_client.dart';
 import 'code_screen.dart';
+import 'phone_screen.dart';
 
 class CitizenRegistrationScreen extends StatefulWidget {
   const CitizenRegistrationScreen({super.key});
@@ -44,8 +45,13 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen> {
       await prefs.setString('last_phone', phone);
 
       if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => CodeScreen(phone: phone, devCode: code)),
+      // بعد إنشاء الحساب بنجاح، العودة إلى واجهة تسجيل الدخول للمواطن
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم إنشاء الحساب بنجاح. يرجى تسجيل الدخول.')),
+      );
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
+        (route) => false,
       );
     } catch (e) {
       setState(() => _error = 'تعذر إنشاء الحساب. حاول مرة أخرى.');

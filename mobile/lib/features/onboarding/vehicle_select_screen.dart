@@ -2,18 +2,35 @@ import 'package:flutter/material.dart';
 import '../../core/responsive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/phone_screen.dart';
+import '../vehicles/login/vehicle_login_screens.dart';
 
 class VehicleSelectScreen extends StatelessWidget {
   const VehicleSelectScreen({super.key});
 
-  Future<void> _choose(BuildContext context, String role) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('intended_role', role);
-    await prefs.setBool('seen_onboarding', true);
-    if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
-      (route) => false,
+  void _openLogin(BuildContext context, String role) {
+    Widget dest;
+    switch (role) {
+      case 'taxi':
+        dest = const TaxiLoginScreen();
+        break;
+      case 'tuk_tuk':
+        dest = const TukTukLoginScreen();
+        break;
+      case 'kia_haml':
+        dest = const KiaHamlLoginScreen();
+        break;
+      case 'kia_passenger':
+        dest = const KiaPassengerLoginScreen();
+        break;
+      case 'stuta':
+        dest = const StutaLoginScreen();
+        break;
+      case 'bike':
+      default:
+        dest = const BikeLoginScreen();
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => dest),
     );
   }
 
@@ -41,7 +58,7 @@ class VehicleSelectScreen extends StatelessWidget {
         itemBuilder: (_, i) => _Card(
           title: items[i].title,
           icon: items[i].icon,
-          onTap: () => _choose(context, items[i].role),
+          onTap: () => _openLogin(context, items[i].role),
         ),
       ),
     );

@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/responsive.dart';
+import '../auth/phone_screen.dart';
+import 'vehicle_select_screen.dart';
+import 'craft_select_screen.dart';
+import 'admin_select_screen.dart';
+import '../registration/restaurant_registration_screen.dart';
 
 class RoleSelectScreen extends StatefulWidget {
   const RoleSelectScreen({super.key});
@@ -15,57 +21,69 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
   final List<Map<String, String>> _roles = const [
     {'key': 'citizen', 'label': 'مواطن'},
     {'key': 'restaurant_owner', 'label': 'صاحب مطعم'},
-    {'key': 'owner', 'label': 'مالك النظام'},
   ];
 
-  Future<void> _continue() async {
-    if (_selectedRole == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار دور للمتابعة')),
-      );
-      return;
-    }
-    setState(() => _saving = true);
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('first_run_done', true);
-      await prefs.setString('selected_role', _selectedRole!);
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const _OnboardingDoneScreen()),
-      );
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+  Future<void> _goCitizen() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('intended_role', 'citizen');
+    await prefs.setBool('seen_onboarding', true);
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<void> _goRestaurantOwner() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('intended_role', 'restaurant_owner');
+    await prefs.setBool('seen_onboarding', true);
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const RestaurantRegistrationScreen()),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final items = <_Item>[
+      _Item('مواطن', Icons.person, _goCitizen),
+      _Item('صاحب مركبة', Icons.directions_car, () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const VehicleSelectScreen()),
+        );
+      }),
+      _Item('صاحب حِرفة', Icons.handyman, () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const CraftSelectScreen()),
+        );
+      }),
+      _Item('الأدمن', Icons.admin_panel_settings, () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const AdminSelectScreen()),
+        );
+      }),
+      _Item('صاحب المطعم', Icons.restaurant, _goRestaurantOwner),
+    ];
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(title: const Text('اختيار الدور')),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text('اختر الدور المناسب لك للمتابعة:'),
-              const SizedBox(height: 12),
-              ..._roles.map((r) => RadioListTile<String>(
-                    title: Text(r['label']!),
-                    value: r['key']!,
-                    groupValue: _selectedRole,
-                    onChanged: (v) => setState(() => _selectedRole = v),
-                  )),
-              const Spacer(),
-              FilledButton(
-                onPressed: _saving ? null : _continue,
-                child: _saving
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('متابعة'),
-              ),
-            ],
+        body: GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: Responsive.gridMaxCrossAxisExtent(context),
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: Responsive.gridChildAspectRatio(context),
+          ),
+          itemCount: items.length,
+          itemBuilder: (_, i) => _Card(
+            title: items[i].title,
+            icon: items[i].icon,
+            onTap: items[i].onTap,
           ),
         ),
       ),
@@ -73,25 +91,47 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
   }
 }
 
-class _OnboardingDoneScreen extends StatelessWidget {
-  const _OnboardingDoneScreen();
+class _Item {
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+  _Item(this.title, this.icon, this.onTap);
+}
+
+class _Card extends StatelessWidget {
+  const _Card({required this.title, required this.icon, required this.onTap});
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        body: Center(
+    final iconSize = Responsive.cardIconSize(context);
+    final fontSize = Responsive.cardFontSize(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.check_circle_outline, size: 64, color: Colors.green),
-              const SizedBox(height: 12),
-              const Text('تم إكمال الإعداد الأولي'),
+              Icon(icon, size: iconSize, color: Theme.of(context).colorScheme.primary),
               const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('رجوع'),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
               ),
             ],
           ),
