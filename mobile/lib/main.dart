@@ -60,6 +60,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      initialRoute: '/',
       routes: {
         '/': (_) => const SplashScreen(),
         '/roles': (_) => const RoleSelectScreen(),
@@ -69,7 +70,6 @@ class MyApp extends StatelessWidget {
         '/crafts/select': (_) => const CraftSelectScreen(),
         '/waiting': (_) => const WaitingApprovalScreen(),
       },
-      home: const SplashScreen(),
     );
   }
 }
