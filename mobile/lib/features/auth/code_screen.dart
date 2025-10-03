@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api_client.dart';
 import '../common/waiting_approval_screen.dart';
-import '../../main.dart';
 import '../citizen/citizen_home.dart';
 import '../driver/driver_home.dart';
 import '../driver/taxi_home_screen.dart';
@@ -10,8 +9,6 @@ import '../driver/tuk_tuk_home_screen.dart';
 import '../driver/kia_haml_home_screen.dart';
 import '../driver/stuta_home_screen.dart';
 import '../driver/bike_home_screen.dart';
-import '../admin/admin_home.dart';
-import '../owner/owner_home.dart';
 import '../registration/vehicle_registration_screen.dart';
 import '../registration/craft_registration_screen.dart';
 import '../crafts/electrician_home_screen.dart';
@@ -21,7 +18,8 @@ import '../crafts/blacksmith_home_screen.dart';
 
 class CodeScreen extends StatefulWidget {
   final String phone;
-  final String? devCode; // يظهر أثناء التطوير فقط
+  final String? devCode;
+
   const CodeScreen({super.key, required this.phone, this.devCode});
 
   @override
@@ -57,11 +55,14 @@ class _CodeScreenState extends State<CodeScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final intendedRole = prefs.getString('intended_role');
-      final res = await ApiClient.I.dio.post('/auth/verify', data: {
-        'phone': widget.phone,
-        'code': _codeController.text.trim(),
-        if (intendedRole != null) 'intendedRole': intendedRole,
-      });
+      final res = await ApiClient.I.dio.post(
+        '/auth/verify',
+        data: {
+          'phone': widget.phone,
+          'code': _codeController.text.trim(),
+          if (intendedRole != null) 'intendedRole': intendedRole,
+        },
+      );
       final data = res.data as Map<String, dynamic>;
       final token = data['token']?.toString();
       final user = data['user'] as Map<String, dynamic>;
@@ -81,7 +82,7 @@ class _CodeScreenState extends State<CodeScreen> {
           (route) => false,
         );
       } else {
-        // Navigate based on role
+        // اختيار الوجهة حسب الدور
         Widget dest;
         switch (role) {
           case 'citizen':
@@ -93,8 +94,8 @@ class _CodeScreenState extends State<CodeScreen> {
           case 'kia_passenger':
           case 'stuta':
           case 'bike':
-            // If vehicle profile not completed, go to registration first
-            if ((user['vehicleType'] == null || (user['vehicleType'] as String).isEmpty)) {
+            if ((user['vehicleType'] == null ||
+                (user['vehicleType'] as String).isEmpty)) {
               dest = const VehicleRegistrationScreen();
             } else {
               switch (role) {
@@ -122,7 +123,8 @@ class _CodeScreenState extends State<CodeScreen> {
           case 'plumber':
           case 'blacksmith':
           case 'ac_tech':
-            if ((user['craftType'] == null || (user['craftType'] as String).isEmpty)) {
+            if ((user['craftType'] == null ||
+                (user['craftType'] as String).isEmpty)) {
               dest = const CraftRegistrationScreen();
             } else {
               switch (role) {
@@ -141,13 +143,8 @@ class _CodeScreenState extends State<CodeScreen> {
               }
             }
             break;
-          case 'admin':
-            dest = const AdminHome();
-            break;
-          case 'owner':
-            dest = const OwnerHome();
-            break;
           default:
+            // الأدمن والمالك وغيرهم يروحون هنا
             dest = const PlaceholderHome();
         }
         Navigator.of(context).pushAndRemoveUntil(
@@ -156,9 +153,15 @@ class _CodeScreenState extends State<CodeScreen> {
         );
       }
     } catch (e) {
-      setState(() => _error = 'الكود غير صحيح أو منتهي الصلاحية');
+      setState(() {
+        _error = 'فشل التحقق: $e';
+      });
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -173,8 +176,10 @@ class _CodeScreenState extends State<CodeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('تم إرسال كود مكون من 4 أرقام إلى الأدمن لرقم: ${widget.phone}',
-                  textAlign: TextAlign.center),
+              Text(
+                'تم إرسال كود مكون من 4 أرقام إلى الأدمن لرقم: ${widget.phone}',
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _codeController,
@@ -199,11 +204,31 @@ class _CodeScreenState extends State<CodeScreen> {
               ElevatedButton(
                 onPressed: _loading ? null : _verify,
                 child: _loading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Text('تأكيد'),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class PlaceholderHome extends StatelessWidget {
+  const PlaceholderHome({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('الصفحة الرئيسية')),
+      body: const Center(
+        child: Text(
+          'تم تسجيل الدخول، لكن لم يتم تحديد دور محدد أو مستخدم لا يحتاج كود.',
         ),
       ),
     );

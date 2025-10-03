@@ -89,7 +89,10 @@ class _SplashScreenState extends State<SplashScreen> {
       case 'kia_passenger':
       case 'stuta':
       case 'bike':
-        dest = (me != null && ((me['vehicleType'] == null) || (me['vehicleType'] as String).isEmpty))
+        dest =
+            (me != null &&
+                ((me['vehicleType'] == null) ||
+                    (me['vehicleType'] as String).isEmpty))
             ? const VehicleRegistrationScreen()
             : const DriverHome();
         break;
@@ -97,7 +100,10 @@ class _SplashScreenState extends State<SplashScreen> {
       case 'plumber':
       case 'blacksmith':
       case 'ac_tech':
-        dest = (me != null && ((me['craftType'] == null) || (me['craftType'] as String).isEmpty))
+        dest =
+            (me != null &&
+                ((me['craftType'] == null) ||
+                    (me['craftType'] as String).isEmpty))
             ? const CraftRegistrationScreen()
             : CraftHomeBaseScreen(role: role!, title: _craftRoleTitle(role));
         break;
@@ -109,13 +115,17 @@ class _SplashScreenState extends State<SplashScreen> {
         break;
       case 'restaurant_owner':
         final localRegistered = prefs.getBool('restaurant_registered') ?? false;
-        dest = localRegistered ? const RestaurantHome() : const RestaurantRegistrationScreen();
+        dest = localRegistered
+            ? const RestaurantHome()
+            : const RestaurantRegistrationScreen();
         break;
       default:
         dest = const RoleSelectScreen();
     }
 
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => dest));
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => dest));
   }
 
   String _craftRoleTitle(String role) {
@@ -167,7 +177,11 @@ class _SplashScreenState extends State<SplashScreen> {
                     child: Text(
                       'تم إنشاء التطبيق من مجموعة الحسن للبرمجيات والتقنيات الدقيقة ومنظومات الطاقة المتجددة',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -176,3 +190,8 @@ class _SplashScreenState extends State<SplashScreen> {
               const CircularProgressIndicator(color: Colors.white),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
