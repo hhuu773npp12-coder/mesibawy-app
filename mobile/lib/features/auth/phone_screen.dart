@@ -82,7 +82,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
   }
 
   bool get _isCraftRole => _intendedRole == 'electrician' || _intendedRole == 'plumber' || _intendedRole == 'blacksmith' || _intendedRole == 'ac_tech';
-  bool get _isVehicleRole => _intendedRole == 'taxi' || _intendedRole == 'tuk_tuk' || _intendedRole == 'kia_haml' || _intendedRole == 'kia_passenger' || _intendedRole == 'stuta' || _intendedRole == 'bike';
+  bool get _isVehicleRole => _intendedRole == 'vehicle_owner';
   bool get _isRestaurantRole => _intendedRole == 'restaurant_owner';
 
   @override

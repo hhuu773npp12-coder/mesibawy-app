@@ -16,6 +16,8 @@ class CraftRegistrationScreen extends StatefulWidget {
 class _CraftRegistrationScreenState extends State<CraftRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _craftType; // electrician | plumber | blacksmith | ac_tech
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
   bool _uploading = false;
@@ -31,6 +33,8 @@ class _CraftRegistrationScreenState extends State<CraftRegistrationScreen> {
     try {
       await ApiClient.I.dio.post('/profile/craft', data: {
         'craftType': _craftType,
+        'name': _nameCtrl.text.trim(),
+        'phone': _phoneCtrl.text.trim(),
         if (_photoUrls.isNotEmpty) 'photos': _photoUrls,
       });
       if (!mounted) return;
@@ -86,6 +90,36 @@ class _CraftRegistrationScreenState extends State<CraftRegistrationScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              const Text('الاسم'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _nameCtrl,
+                textDirection: TextDirection.rtl,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'اسم صاحب الحِرفة',
+                ),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'يرجى إدخال الاسم' : null,
+              ),
+              const SizedBox(height: 12),
+              const Text('رقم الهاتف'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                textDirection: TextDirection.ltr,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '07XXXXXXXXX',
+                ),
+                validator: (v) {
+                  final s = (v ?? '').trim();
+                  if (s.isEmpty) return 'الرجاء إدخال رقم الهاتف';
+                  if (s.length < 7) return 'رقم الهاتف غير صحيح';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
               const Text('نوع الحِرفة'),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(

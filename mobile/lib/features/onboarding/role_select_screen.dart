@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/responsive.dart';
 import '../auth/phone_screen.dart';
-import 'vehicle_select_screen.dart';
+// تمت إزالة شاشة فرز أنواع المركبات
 import 'craft_select_screen.dart';
 import 'admin_select_screen.dart';
 import '../registration/restaurant_registration_screen.dart';
@@ -34,6 +34,17 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
     );
   }
 
+  Future<void> _goVehicleOwner() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('intended_role', 'vehicle_owner');
+    await prefs.setBool('seen_onboarding', true);
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
+      (route) => false,
+    );
+  }
+
   Future<void> _goRestaurantOwner() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('intended_role', 'restaurant_owner');
@@ -49,11 +60,7 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
   Widget build(BuildContext context) {
     final items = <_Item>[
       _Item('مواطن', Icons.person, _goCitizen),
-      _Item('صاحب مركبة', Icons.directions_car, () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const VehicleSelectScreen()),
-        );
-      }),
+      _Item('صاحب مركبة', Icons.directions_car, _goVehicleOwner),
       _Item('صاحب حِرفة', Icons.handyman, () {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const CraftSelectScreen()),

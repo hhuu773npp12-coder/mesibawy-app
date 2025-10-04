@@ -16,7 +16,9 @@ class VehicleRegistrationScreen extends StatefulWidget {
 
 class _VehicleRegistrationScreenState extends State<VehicleRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? _vehicleType; // taxi | tuk_tuk | kia_haml | kia_passenger | stuta | bike
+  // تمت إزالة اختيار نوع المركبة حسب المتطلبات
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   final _colorCtrl = TextEditingController();
   final _plateCtrl = TextEditingController();
   final _plateUrlCtrl = TextEditingController(); // مؤقتاً كرابط نصي
@@ -27,6 +29,8 @@ class _VehicleRegistrationScreenState extends State<VehicleRegistrationScreen> {
 
   @override
   void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
     _colorCtrl.dispose();
     _plateCtrl.dispose();
     _plateUrlCtrl.dispose();
@@ -66,7 +70,8 @@ class _VehicleRegistrationScreenState extends State<VehicleRegistrationScreen> {
     });
     try {
       await ApiClient.I.dio.post('/profile/vehicle', data: {
-        'vehicleType': _vehicleType,
+        'name': _nameCtrl.text.trim(),
+        'phone': _phoneCtrl.text.trim(),
         if (_colorCtrl.text.trim().isNotEmpty) 'vehicleColor': _colorCtrl.text.trim(),
         if (_plateCtrl.text.trim().isNotEmpty) 'plateNumber': _plateCtrl.text.trim(),
         if (_plateUrlCtrl.text.trim().isNotEmpty) 'plateImageUrl': _plateUrlCtrl.text.trim(),
@@ -93,20 +98,34 @@ class _VehicleRegistrationScreenState extends State<VehicleRegistrationScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              const Text('نوع المركبة'),
+              const Text('الاسم'),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _vehicleType,
-                items: const [
-                  DropdownMenuItem(value: 'taxi', child: Text('تكسي')),
-                  DropdownMenuItem(value: 'tuk_tuk', child: Text('تكتك')),
-                  DropdownMenuItem(value: 'kia_haml', child: Text('كيا حمل')),
-                  DropdownMenuItem(value: 'kia_passenger', child: Text('كيا نقل الركاب')),
-                  DropdownMenuItem(value: 'stuta', child: Text('ستوتة')),
-                  DropdownMenuItem(value: 'bike', child: Text('دراجة')),
-                ],
-                onChanged: (v) => setState(() => _vehicleType = v),
-                validator: (v) => (v == null || v.isEmpty) ? 'اختر نوع المركبة' : null,
+              TextFormField(
+                controller: _nameCtrl,
+                textDirection: TextDirection.rtl,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'اسم المالك',
+                ),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'يرجى إدخال الاسم' : null,
+              ),
+              const SizedBox(height: 12),
+              const Text('رقم الهاتف'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                textDirection: TextDirection.ltr,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '07XXXXXXXXX',
+                ),
+                validator: (v) {
+                  final s = (v ?? '').trim();
+                  if (s.isEmpty) return 'الرجاء إدخال رقم الهاتف';
+                  if (s.length < 7) return 'رقم الهاتف غير صحيح';
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
               const Text('لون المركبة (اختياري)'),

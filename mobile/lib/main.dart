@@ -10,7 +10,7 @@ import 'features/common/waiting_approval_screen.dart';
 import 'features/admin/admin_home.dart';
 import 'features/orders/order_screen.dart';
 import 'features/map/map_screen.dart';
-import 'features/onboarding/vehicle_select_screen.dart';
+// تم الاستغناء عن شاشة فرز أنواع المركبات بعد توحيد الدور إلى vehicle_owner
 import 'features/onboarding/craft_select_screen.dart';
 import 'features/onboarding/admin_select_screen.dart';
 import 'features/citizen/citizen_home.dart';
@@ -66,7 +66,6 @@ class MyApp extends StatelessWidget {
         '/roles': (_) => const RoleSelectScreen(),
         '/phone': (_) => const PhoneInputScreen(),
         '/admin/select': (_) => const AdminSelectScreen(),
-        '/vehicles/select': (_) => const VehicleSelectScreen(),
         '/crafts/select': (_) => const CraftSelectScreen(),
         '/waiting': (_) => const WaitingApprovalScreen(),
       },
