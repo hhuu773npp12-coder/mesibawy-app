@@ -5,8 +5,8 @@ workflows:
     environment:
       flutter: stable
       vars:
-        # اضبط هذا المتغير من واجهة Codemagic قبل البناء
-        API_BASE_URL: "http://192.168.1.50:3001"
+        # عنوان الخادم العام المستخدم داخل التطبيق أثناء البناء
+        API_BASE_URL: "https://mesibawy.com/api"
     working_directory: mobile
     scripts:
       - name: Flutter pub get
@@ -32,7 +32,8 @@ workflows:
     environment:
       flutter: stable
       vars:
-        API_BASE_URL: "https://your-backend.example.com" # غيّر من واجهة Codemagic
+        # يمكن تغييره من واجهة Codemagic عند الحاجة لبيئات مختلفة
+        API_BASE_URL: "https://mesibawy.com/api"
     working_directory: mobile
     scripts:
       - name: Flutter pub get
@@ -58,7 +59,7 @@ workflows:
     environment:
       flutter: stable
       vars:
-        API_BASE_URL: "https://your-backend.example.com" # غيّر من واجهة Codemagic
+        API_BASE_URL: "https://mesibawy.com/api"
     working_directory: mobile
     scripts:
       - name: Flutter pub get
