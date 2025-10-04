@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../../core/api_client.dart';
 import 'code_screen.dart';
 import 'admin_owner_login_screen.dart';
@@ -70,7 +71,16 @@ class _AdminOwnerRegistrationScreenState extends State<AdminOwnerRegistrationScr
         (route) => false,
       );
     } catch (e) {
-      setState(() => _error = 'تعذر إنشاء الحساب. تحقق من البيانات وحاول مجدداً.');
+      String friendly = 'تعذر إنشاء الحساب. تحقق من البيانات وحاول مجدداً.';
+      if (e is DioException) {
+        final data = e.response?.data;
+        if (data is Map && data['message'] is String && (data['message'] as String).isNotEmpty) {
+          friendly = data['message'] as String;
+        } else if (e.error is String && (e.error as String).isNotEmpty) {
+          friendly = e.error as String;
+        }
+      }
+      setState(() => _error = friendly);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

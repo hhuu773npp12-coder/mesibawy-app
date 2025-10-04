@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../../core/api_client.dart';
 import 'code_screen.dart';
 import '../../main.dart';
 import '../onboarding/role_select_screen.dart';
 import 'citizen_registration_screen.dart';
-import '../onboarding/craft_select_screen.dart';
 import '../registration/craft_registration_screen.dart';
 import '../registration/vehicle_registration_screen.dart';
 import '../registration/restaurant_registration_screen.dart';
@@ -75,7 +75,17 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
         ),
       );
     } catch (e) {
-      setState(() => _error = 'تعذر إرسال الكود. تأكد من الاتصال وحاول مرة أخرى.');
+      String friendly = 'تعذر إرسال الكود. تأكد من الاتصال وحاول مرة أخرى.';
+      if (e is DioException) {
+        // حاول استخراج رسالة واضحة من الخادم
+        final data = e.response?.data;
+        if (data is Map && data['message'] is String && (data['message'] as String).isNotEmpty) {
+          friendly = data['message'] as String;
+        } else if (e.error is String && (e.error as String).isNotEmpty) {
+          friendly = e.error as String;
+        }
+      }
+      setState(() => _error = friendly);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

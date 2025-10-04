@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../../core/api_client.dart';
 import 'code_screen.dart';
 import 'phone_screen.dart';
@@ -54,7 +55,16 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen> {
         (route) => false,
       );
     } catch (e) {
-      setState(() => _error = 'تعذر إنشاء الحساب. حاول مرة أخرى.');
+      String friendly = 'تعذر إنشاء الحساب. حاول مرة أخرى.';
+      if (e is DioException) {
+        final data = e.response?.data;
+        if (data is Map && data['message'] is String && (data['message'] as String).isNotEmpty) {
+          friendly = data['message'] as String;
+        } else if (e.error is String && (e.error as String).isNotEmpty) {
+          friendly = e.error as String;
+        }
+      }
+      setState(() => _error = friendly);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

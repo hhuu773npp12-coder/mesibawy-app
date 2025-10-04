@@ -75,19 +75,19 @@ class ApiClient {
   late final Dio _dio;
 
   String _detectBaseUrl() {
-    // 1) Allow override from build-time define
+    // 1) Allow override from build-time define (full URL, e.g., http://192.168.1.10, https://api.example.com)
     const override = String.fromEnvironment('API_BASE_URL');
     if (override.isNotEmpty) {
       return override;
     }
 
-    // 2) Fallbacks for emulator/local runs
-    // Backend runs at PORT=3001 on host machine.
-    // Android emulator forwards host at 10.0.2.2.
+    // 2) Fallbacks for emulator/local runs without hardcoded port
+    // Android emulator forwards host at 10.0.2.2 → assumes server on default ports (80/443)
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3001';
+      return 'http://10.0.2.2';
     }
-    return 'http://localhost:3001';
+    // Other platforms: localhost (default ports)
+    return 'http://localhost';
   }
 
   void setAuthToken(String? token) {
