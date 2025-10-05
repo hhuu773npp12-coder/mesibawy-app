@@ -6,9 +6,6 @@ workflows:
       flutter: stable
       vars:
         API_BASE_URL: "https://mesibawy.com/api"
-      env:
-        # زيادة ذاكرة Gradle لتجنب Java heap space
-        ORG_GRADLE_JVMARGS: "-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
     working_directory: mobile
     scripts:
       - name: Clean Flutter project
@@ -39,8 +36,6 @@ workflows:
       flutter: stable
       vars:
         API_BASE_URL: "https://mesibawy.com/api"
-      env:
-        ORG_GRADLE_JVMARGS: "-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
     working_directory: mobile
     scripts:
       - name: Clean Flutter project
@@ -71,8 +66,6 @@ workflows:
       flutter: stable
       vars:
         API_BASE_URL: "https://mesibawy.com/api"
-      env:
-        ORG_GRADLE_JVMARGS: "-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
     working_directory: mobile
     scripts:
       - name: Clean Flutter project
@@ -95,3 +88,4 @@ workflows:
         - mobile/build
         - mobile/.dart_tool
         - mobile/android/.gradle
+
