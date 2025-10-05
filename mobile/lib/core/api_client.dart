@@ -14,6 +14,13 @@ class ApiClient {
 
     // Retry + friendly errors interceptor
     _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (opts, handler) {
+        // Ensure relative paths so baseUrl path (e.g., /api) is not dropped
+        if (opts.path.startsWith('/')) {
+          opts.path = opts.path.substring(1);
+        }
+        handler.next(opts);
+      },
       onError: (e, handler) async {
         final req = e.requestOptions;
         final extra = req.extra;

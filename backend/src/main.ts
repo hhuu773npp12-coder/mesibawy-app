@@ -14,7 +14,11 @@ async function bootstrap() {
   const corsOrigin = process.env.WS_CORS_ORIGIN || '*';
   app.enableCors({ origin: corsOrigin === '*' ? true : corsOrigin.split(',') });
 
+  // Serve API under /api to match mobile builds and reverse proxy routes
+  app.setGlobalPrefix('api');
+
   const port = Number(process.env.PORT || 3000);
-  await app.listen(port);
+  // Bind to all interfaces to accept external connections (useful behind Nginx/PM2)
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();
