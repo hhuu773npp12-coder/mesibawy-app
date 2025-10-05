@@ -1,21 +1,27 @@
 workflows:
   android_debug:
     name: Android Debug APK
-    max_build_duration: 60
+    max_build_duration: 120  # زيادة الوقت لتجنب انتهاء المهلة
     environment:
       flutter: stable
       vars:
-        # عنوان الخادم العام المستخدم داخل التطبيق أثناء البناء
         API_BASE_URL: "https://mesibawy.com/api"
+      env:
+        # زيادة ذاكرة Gradle لتجنب Java heap space
+        ORG_GRADLE_JVMARGS: "-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
     working_directory: mobile
     scripts:
-      - name: Flutter pub get
+      - name: Clean Flutter project
         script: |
-          flutter --version
+          flutter clean
           flutter pub get
+      - name: Ensure correct NDK version
+        script: |
+          echo "ndkVersion=28.1.13356709" >> android/local.properties
       - name: Build debug APK with API_BASE_URL
         script: |
-          flutter build apk --debug \
+          export ORG_GRADLE_JVMARGS="-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
+          flutter build apk --debug --target-platform android-arm,android-arm64,android-x64 \
             --dart-define=API_BASE_URL=${API_BASE_URL}
     artifacts:
       - build/app/outputs/flutter-apk/app-debug.apk
@@ -28,21 +34,26 @@ workflows:
 
   android_release_unsigned:
     name: Android Release APK (unsigned)
-    max_build_duration: 60
+    max_build_duration: 120
     environment:
       flutter: stable
       vars:
-        # يمكن تغييره من واجهة Codemagic عند الحاجة لبيئات مختلفة
         API_BASE_URL: "https://mesibawy.com/api"
+      env:
+        ORG_GRADLE_JVMARGS: "-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
     working_directory: mobile
     scripts:
-      - name: Flutter pub get
+      - name: Clean Flutter project
         script: |
-          flutter --version
+          flutter clean
           flutter pub get
+      - name: Ensure correct NDK version
+        script: |
+          echo "ndkVersion=28.1.13356709" >> android/local.properties
       - name: Build release APK (unsigned) with API_BASE_URL
         script: |
-          flutter build apk --release \
+          export ORG_GRADLE_JVMARGS="-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
+          flutter build apk --release --target-platform android-arm,android-arm64,android-x64 \
             --dart-define=API_BASE_URL=${API_BASE_URL}
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
@@ -55,20 +66,26 @@ workflows:
 
   android_aab_unsigned:
     name: Android Release AAB (unsigned)
-    max_build_duration: 60
+    max_build_duration: 120
     environment:
       flutter: stable
       vars:
         API_BASE_URL: "https://mesibawy.com/api"
+      env:
+        ORG_GRADLE_JVMARGS: "-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
     working_directory: mobile
     scripts:
-      - name: Flutter pub get
+      - name: Clean Flutter project
         script: |
-          flutter --version
+          flutter clean
           flutter pub get
+      - name: Ensure correct NDK version
+        script: |
+          echo "ndkVersion=28.1.13356709" >> android/local.properties
       - name: Build release AAB (unsigned) with API_BASE_URL
         script: |
-          flutter build appbundle --release \
+          export ORG_GRADLE_JVMARGS="-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx4096m"
+          flutter build appbundle --release --target-platform android-arm,android-arm64,android-x64 \
             --dart-define=API_BASE_URL=${API_BASE_URL}
     artifacts:
       - build/app/outputs/bundle/release/*.aab
