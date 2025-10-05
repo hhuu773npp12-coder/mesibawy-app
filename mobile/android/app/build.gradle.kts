@@ -8,7 +8,8 @@ plugins {
 android {
     namespace = "com.mesibawy.services.mesibawy"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Pinned to satisfy maplibre_gl requirement and avoid CI mismatch
+    ndkVersion = "28.1.13356709"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
