@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 
 class ApiClient {
@@ -9,13 +8,12 @@ class ApiClient {
       baseUrl: base,
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 30),
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type': 'application/json'},
     ));
 
     // Retry + friendly errors interceptor
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (opts, handler) {
-        // Ensure relative paths so baseUrl path (e.g., /api) is not dropped
         if (opts.path.startsWith('/')) {
           opts.path = opts.path.substring(1);
         }
@@ -26,7 +24,6 @@ class ApiClient {
         final extra = req.extra;
         final attempt = (extra['attempt'] as int?) ?? 0;
 
-        // Retry on transient network errors (no response or 5xx)
         final isNetwork = e.type == DioExceptionType.connectionError ||
             e.type == DioExceptionType.connectionTimeout ||
             e.type == DioExceptionType.receiveTimeout ||
@@ -35,7 +32,6 @@ class ApiClient {
         final isServer = status >= 500 && status < 600;
 
         if ((isNetwork || isServer) && attempt < 3) {
-          // exponential backoff: 500ms, 1000ms, 2000ms
           final delayMs = 500 * (1 << attempt);
           await Future.delayed(Duration(milliseconds: delayMs));
           try {
@@ -62,11 +58,10 @@ class ApiClient {
             );
             return handler.resolve(response);
           } catch (err) {
-            // fall through to error formatting below
+            // fall through to error formatting
           }
         }
 
-        // Friendly error message
         final friendly = _friendlyMessage(e);
         handler.reject(DioException(
           requestOptions: req,
@@ -82,19 +77,8 @@ class ApiClient {
   late final Dio _dio;
 
   String _detectBaseUrl() {
-    // 1) Allow override from build-time define (full URL, e.g., http://192.168.1.10, https://api.example.com)
-    const override = String.fromEnvironment('API_BASE_URL');
-    if (override.isNotEmpty) {
-      return override;
-    }
-
-    // 2) Fallbacks for emulator/local runs without hardcoded port
-    // Android emulator forwards host at 10.0.2.2 → assumes server on default ports (80/443)
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2';
-    }
-    // Other platforms: localhost (default ports)
-    return 'http://localhost';
+    // استخدم عنوان السيرفر مباشرة
+    return 'http://159.198.79.153'; // استبدل بالـ IP أو الدومين الخاص بك
   }
 
   void setAuthToken(String? token) {
