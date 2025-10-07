@@ -78,7 +78,7 @@ class ApiClient {
 
   String _detectBaseUrl() {
     // استخدم عنوان السيرفر مباشرة
-    return 'http://159.198.79.153'; // استبدل بالـ IP أو الدومين الخاص بك
+    return 'http://159.198.79.153/backend'; // استبدل بالـ IP أو الدومين الخاص بك
   }
 
   void setAuthToken(String? token) {
