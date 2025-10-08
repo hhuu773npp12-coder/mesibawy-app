@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- السماح بالاتصالات HTTP غير المشفرة مع الخادم المحدد -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">159.198.79.153</domain>
+    </domain-config>
+</network-security-config>
