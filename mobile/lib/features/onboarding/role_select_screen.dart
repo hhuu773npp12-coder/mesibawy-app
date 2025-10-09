@@ -6,6 +6,7 @@ import '../auth/phone_screen.dart';
 import 'craft_select_screen.dart';
 import 'admin_select_screen.dart';
 import '../registration/restaurant_registration_screen.dart';
+import 'vehicle_select_screen.dart';
 
 class RoleSelectScreen extends StatefulWidget {
   const RoleSelectScreen({super.key});
@@ -35,13 +36,9 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
   }
 
   Future<void> _goVehicleOwner() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('intended_role', 'vehicle_owner');
-    await prefs.setBool('seen_onboarding', true);
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
-      (route) => false,
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const VehicleSelectScreen()),
     );
   }
 
@@ -147,3 +144,4 @@ class _Card extends StatelessWidget {
     );
   }
 }
+
