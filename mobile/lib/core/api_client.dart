@@ -17,6 +17,7 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (opts, handler) {
+          // Ensure relative paths so baseUrl path (e.g., /api) is not dropped
           if (opts.path.startsWith('/')) {
             opts.path = opts.path.substring(1);
           }
@@ -27,6 +28,7 @@ class ApiClient {
           final extra = req.extra;
           final attempt = (extra['attempt'] as int?) ?? 0;
 
+          // Retry on transient network errors (no response or 5xx)
           final isNetwork =
               e.type == DioExceptionType.connectionError ||
               e.type == DioExceptionType.connectionTimeout ||
@@ -36,6 +38,7 @@ class ApiClient {
           final isServer = status >= 500 && status < 600;
 
           if ((isNetwork || isServer) && attempt < 3) {
+            // exponential backoff: 500ms, 1000ms, 2000ms
             final delayMs = 500 * (1 << attempt);
             await Future.delayed(Duration(milliseconds: delayMs));
             try {
@@ -62,10 +65,11 @@ class ApiClient {
               );
               return handler.resolve(response);
             } catch (err) {
-              // fall through to error formatting
+              // fall through to error formatting below
             }
           }
 
+          // Friendly error message
           final friendly = _friendlyMessage(e);
           handler.reject(
             DioException(
@@ -77,16 +81,25 @@ class ApiClient {
           );
         },
       ),
-    ); // <- هنا تأكدنا من إضافة القوس و ; النهائي
+    );
   }
 
   static final ApiClient I = ApiClient._internal();
   late final Dio _dio;
 
+  /// 🔧 دالة تحديد عنوان الخادم الأساسي
   String _detectBaseUrl() {
-    return 'http://159.198.79.153:3000/api/';
+    // 1) Allow override from build-time define (full URL)
+    const override = String.fromEnvironment('API_BASE_URL');
+    if (override.isNotEmpty) {
+      return override;
+    }
+
+    // ✅ استخدم السيرفر الرسمي الخاص بك
+    return 'https://mesibawy.com/api';
   }
 
+  /// إعداد توكن المصادقة
   void setAuthToken(String? token) {
     if (token == null || token.isEmpty) {
       _dio.options.headers.remove('Authorization');
@@ -97,6 +110,7 @@ class ApiClient {
 
   Dio get dio => _dio;
 
+  /// رسائل الخطأ المفهومة للمستخدم
   String _friendlyMessage(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
