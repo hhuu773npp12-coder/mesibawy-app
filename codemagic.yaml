@@ -5,7 +5,7 @@ workflows:
     environment:
       flutter: stable
       vars:
-        API_BASE_URL: "https://mesibawy.com/api"
+        API_BASE_URL: "https://mesibawy.com/api/"
     working_directory: mobile
 
     scripts:

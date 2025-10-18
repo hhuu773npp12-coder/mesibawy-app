@@ -96,7 +96,7 @@ class ApiClient {
     }
 
     // ✅ استخدم السيرفر الرسمي الخاص بك
-    return 'https://mesibawy.com/api';
+    return 'https://mesibawy.com/api/';
   }
 
   /// إعداد توكن المصادقة
